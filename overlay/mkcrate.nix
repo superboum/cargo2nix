@@ -35,6 +35,9 @@ let
   wrapper = rustpkg: params: pkgs.writeScriptBin rustpkg ''
     #!${stdenv.shell}
     . ${./utils.sh}
+    echo "rustc wrapper here" >&2
+    echo $@ >&2
+
     isBuildScript=
     args=("$@")
     exec 3> rust.args
