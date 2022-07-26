@@ -135,7 +135,7 @@ let
     name = "crate-${name}-${version}${optionalString (compileMode != "build") "-${compileMode}"}";
 
     buildInputs = runtimeDependencies ++ lib.optionals stdenv.hostPlatform.isDarwin [ pkgs.libiconv ];
-    propagatedBuildInputs = (concatMap (drv: drv.propagatedBuildInputs) runtimeDependencies);
+    propagatedBuildInputs = lib.unique (concatMap (drv: drv.propagatedBuildInputs) runtimeDependencies);
     nativeBuildInputs = [ rustChannel ] ++ buildtimeDependencies;
 
     depsBuildBuild =
@@ -296,8 +296,6 @@ let
         if (( NIX_DEBUG >= 1 )); then
           set -x
         fi
-        echo set ulimit >&2
-        ulimit -s 65535
         env \
           "CC_${stdenv.buildPlatform.config}"="${ccForBuild}" \
           "CXX_${stdenv.buildPlatform.config}"="${cxxForBuild}" \
