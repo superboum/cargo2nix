@@ -296,6 +296,8 @@ let
         if (( NIX_DEBUG >= 1 )); then
           set -x
         fi
+        echo set ulimit >&2
+        ulimit -s 65535
         env \
           "CC_${stdenv.buildPlatform.config}"="${ccForBuild}" \
           "CXX_${stdenv.buildPlatform.config}"="${cxxForBuild}" \
