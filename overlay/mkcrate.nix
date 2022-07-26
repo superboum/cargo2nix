@@ -32,7 +32,7 @@
 with builtins; with lib;
 let
   inherit (rustLib) rustTriple decideProfile;
-  wrapper = rustpkg: params: pkgs.writeScriptBin rustpkg ''
+  wrapper = rustpkg: pkgs.writeScriptBin rustpkg ''
     #!${stdenv.shell}
     . ${./utils.sh}
     echo "rustc wrapper here" >&2
@@ -61,10 +61,10 @@ let
     else
       echo $NIX_RUST_LINK_FLAGS | tr " " "\n" >> rust.args
     fi
-    exec 3>&-
 
-    cat rust.args >&2
-    exec ${rustChannel}/bin/${rustpkg} ${params} @rust.args
+    touch invoke.log
+    echo "''${args[@]}" >>invoke.log
+    exec ${rustChannel}/bin/${rustpkg} "''${args[@]}"
   '';
 
   ccForBuild="${buildPackages.stdenv.cc}/bin/${buildPackages.stdenv.cc.targetPrefix}cc";
@@ -276,8 +276,8 @@ let
 
       export NIX_RUST_LINK_FLAGS="''${linkFlags[@]} -L dependency=$(realpath deps) $extraRustcFlags"
       export NIX_RUST_BUILD_LINK_FLAGS="''${buildLinkFlags[@]} -L dependency=$(realpath build_deps) $extraRustcBuildFlags"
-      export RUSTC=${wrapper "clippy-driver" "--rustc"}/bin/clippy-driver
-      export RUSTDOC=${wrapper "rustdoc" ""}/bin/rustdoc
+      export RUSTC=${wrapper "clippy-driver"}/bin/clippy-driver
+      export RUSTDOC=${wrapper "rustdoc"}/bin/rustdoc
 
       depKeys=(`loadDepKeys $dependencies`)
 
