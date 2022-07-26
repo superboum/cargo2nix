@@ -37,21 +37,31 @@ let
     . ${./utils.sh}
     isBuildScript=
     args=("$@")
+    exec 3> rust.args
+
     for i in "''${!args[@]}"; do
-      if [ "xmetadata=" = "x''${args[$i]::9}" ]; then
-        args[$i]=metadata=$NIX_RUST_METADATA
-      elif [ "x--crate-name" = "x''${args[$i]}" ] && [ "xbuild_script_" = "x''${args[$i+1]::13}" ]; then
+      # detection
+      if [ "x--crate-name" = "x''${args[$i]}" ] && [ "xbuild_script_" = "x''${args[$i+1]::13}" ]; then
         isBuildScript=1
       fi
+ 
+      # rewrite (if needed)
+      if [ "xmetadata=" = "x''${args[$i]::9}" ]; then
+        echo metadata=$NIX_RUST_METADATA >> rust.args
+      else
+        echo ''${args[$i]} >> rust.args
+      fi
     done
+
     if [ "$isBuildScript" ]; then
-      args+=($NIX_RUST_BUILD_LINK_FLAGS)
+      echo $NIX_RUST_BUILD_LINK_FLAGS | tr " " "\n" >> rust.args
     else
-      args+=($NIX_RUST_LINK_FLAGS)
+      echo $NIX_RUST_LINK_FLAGS | tr " " "\n" >> rust.args
     fi
-    touch invoke.log
-    echo "''${args[@]}" >>invoke.log
-    exec ${rustChannel}/bin/${rustpkg} ${params} "''${args[@]}"
+    exec 3>&-
+
+    cat rust.args >&2
+    exec ${rustChannel}/bin/${rustpkg} ${params} @rust.args
   '';
 
   ccForBuild="${buildPackages.stdenv.cc}/bin/${buildPackages.stdenv.cc.targetPrefix}cc";
